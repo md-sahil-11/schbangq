@@ -39,6 +39,23 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=False,
+        methods=["POST"],
+        permission_classes=(permissions.AllowAny,),
+    )
+    def register(self, request, *args, **kwargs):
+        email = request.data.get("email")
+        password = request.data.get("password")
+        confirm_password = request.data.get("confirm_password")
+        if password == confirm_password:
+            if User.objects.filter(email = email):
+                return Response({"success": False, "err": "Email already exists!"})
+            else:
+                user = User.objects.create_user(email=email, password=password)
+                user.save()
+                return Response({"success": True, "data": UserSerializer(user).data})
+
+    @action(
+        detail=False,
         methods=["GET"],
         serializer_class=UserRewardSerializer,
         permission_classes=(permissions.IsAuthenticated,),
