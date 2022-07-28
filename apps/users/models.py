@@ -12,13 +12,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(
         max_length=100, unique=True, db_index=True, blank=True, null=True
     )
-    is_leader = models.BooleanField(default=False)
-    is_manager = models.BooleanField(default=False)
-    is_employee = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True, db_index=True)
     date_joined = models.DateTimeField(default=timezone.now)
     picture = models.ImageField(upload_to="users/profile", null=True, blank=True)
     about = models.TextField(null=True, blank=True)
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
     
     objects = UserManager()
 

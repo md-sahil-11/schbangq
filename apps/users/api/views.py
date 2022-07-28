@@ -19,7 +19,7 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(
         detail=False,
         methods=["POST"],
-        permission_classes=(permissions.AllowAny,),
+        permission_classes=(permissions.IsAuthenticated,),
     )
     def login(self, request, *args, **kwargs):
         email = request.data.get("email")
@@ -27,15 +27,16 @@ class UserViewSet(viewsets.ModelViewSet):
         user = authenticate(email=email, password=password)
         if not user:
             return Response({"success": False, "err": "Invalid password or email!"})
-        if not user.is_active:
-            return Response(
-                {
-                    "success": False,
-                    "err": "Please open verification link sent on this email to continue!",
-                }
-            )
         data = UserSerializer(user).data
         return Response({"success": True, "data": data})
+    
+    @action(
+        detail=False,
+        methods=["POST"],
+        permission_classes=(permissions.IsAuthenticated,),
+    )
+    def invite(self, request, *args, **kwargs):
+        pass
 
     @action(
         detail=False,
