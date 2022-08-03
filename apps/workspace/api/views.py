@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from apps.users.api.serializers import UserSerializer
+from apps.users.models import UserReward
 from apps.workspace.helpers import invite_mail
 from django.contrib.auth import authenticate
 
@@ -152,7 +153,7 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
     def case_studies(self, request, *args, **kwargs):
         workspace = self.get_object()
         queryset = workspace.case_studies.all()
-        serializer = ServiceSerializer(queryset, many=True)
+        serializer = CaseStudySerializer(queryset, many=True)
         return Response({'count': queryset.count(), 'results': serializer.data})
     
     @action(
@@ -200,7 +201,9 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
     def all_tasks(self, request, *args, **kwargs):
         workspace = self.get_object()
         is_pending = request.query_params.get('is_pending', None)
-        queryset = Task.objects.filter(project__worksapce=workspace)
+        queryset = Task.objects.filter(
+            project__workspace=workspace
+        )
         if is_pending is not None:
             if is_pending == "false":
                 queryset = queryset.filter(is_pending=False)
@@ -208,38 +211,42 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(is_pending=True)
         author_type = request.query_params.get('author_type', None)
         if author_type is not None:
-            if author_type == "employee":
+            if author_type == "manager":
                 queryset = queryset.filter(
                     assignor=request.user
                 )
-            elif author_type == "manager":
-                queryset = queryset.filter(assignee=request.user, project__workspace=workspace)
-            else: return Response({'count': 0, 'results': []})
+            elif author_type == "employee":
+                queryset = queryset.filter(assignee=request.user)
             
-            serializer = self.serializer_class(queryset, many=True)
+            serializer = TaskSerializer(queryset, many=True)
             return Response({'count': queryset.count(), 'results': serializer.data})
         return Response({'count': 0, 'results': []})
 
     @action(
         detail=True,
         methods=['GET'],
-        serializer_class=TaskSerializer
     )
     def project_tasks(self, request, *args, **kwargs):
         project = get_object_or_404(Project, pk=int(self.kwargs.get('pk')))
         queryset = project.tasks.all()
-        serializer = self.serializer_class(queryset, many=True)
+        serializer = TaskSerializer(queryset, many=True)
         return Response({'count': queryset.count(), 'results': serializer.data})
 
     @action(
         detail=True,
-        methods=['GET'],
+        methods=['PUT'],
         serializer_class=TaskSerializer
     )
     def complete_task(self, request, *args, **kwargs):
         task = get_object_or_404(Task, pk=int(self.kwargs.get('pk')))
-        task.is_pending = False
-        return Response({"success": True})
+        if request.user == task.assignee:
+            task.is_pending = False
+            task.save()
+            UserReward.objects.get_or_create(
+                user=request.user, points=task.reward
+            )
+            return Response({"success": True})
+        return Response({"success": False})
 
     @action(
         detail=True,
@@ -293,4 +300,10 @@ class CaseStudyViewSet(viewsets.ModelViewSet):
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+
+class TaskCommentViewSet(viewsets.ModelViewSet):
+    queryset = TaskComment.objects.all()
+    serializer_class = TaskCommentSerializer
     permission_classes = (permissions.IsAuthenticated,)

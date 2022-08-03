@@ -1,3 +1,4 @@
+from urllib import request
 from rest_framework import serializers
 
 from apps.posts.models import *
@@ -33,6 +34,7 @@ class PostSerializer(serializers.ModelSerializer):
     tags = serializers.SerializerMethodField()
     likes_count = serializers.SerializerMethodField()
     comments_count = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -53,6 +55,13 @@ class PostSerializer(serializers.ModelSerializer):
     
     def get_comments_count(self, instance):
         return instance.comments.all().count()
+
+    def get_is_liked(self, instance):
+        user = self.get('request', None)
+        if user is not None:
+            return PostLike.objects.filter(user=user, post=instance).exists()
+        return False
+
 
 
 class PostCommentSerializer(serializers.ModelSerializer):

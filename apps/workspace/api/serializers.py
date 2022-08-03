@@ -48,10 +48,26 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 
 class TaskSerializer(serializers.ModelSerializer):
+    assignor_id = serializers.PrimaryKeyRelatedField(
+        source="user",
+        queryset=User.objects.all(),
+        write_only=True,
+        required=False,
+        allow_null=True,
+    ) 
+    assignor = UserSerializer(read_only=True)
+    assignee_id = serializers.PrimaryKeyRelatedField(
+        source="user",
+        queryset=User.objects.all(),
+        write_only=True,
+        required=False,
+        allow_null=True,
+    ) 
+    assignee = UserSerializer(read_only=True)
 
     class Meta:
         model = Task
-        fields = '__all__'
+        fields = ("title", "assignor", "assignor_id", "assignee", "assignee_id", "assigned_at", "deadline_at", "priority", "progress", "reward", "is_pending", "project")
 
 
 class TaskCommentSerializer(serializers.ModelSerializer):
@@ -66,4 +82,4 @@ class TaskCommentSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = TaskComment
-        fields = ("id", "user", "internal_chat", "user_id")
+        fields = ("id", "user", "task", "internal_chat", "user_id", "text")

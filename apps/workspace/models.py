@@ -99,7 +99,7 @@ class Task(models.Model):
     deadline_at = models.DateTimeField(null=True, blank=True)
     type = models.CharField(choices=type_choices.choices(), default=type_choices.GENERAL.value, max_length=100)
     priority = models.CharField(choices=priority_choices.choices(), default=priority_choices.LOW.value, max_length=100)
-    progress = models.PositiveIntegerField()
+    progress = models.PositiveIntegerField(default=0)
     reward = models.CharField(choices=reward_choices.choices(), default=reward_choices.P10.value, max_length=100)
     is_pending = models.BooleanField(default=True)
     # predefined tutorial id (foreign key behaviour)
@@ -134,6 +134,7 @@ class TaskComment(models.Model):
     task = models.ForeignKey(Task, related_name='comments', on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name='task_comments', on_delete=models.CASCADE)
     internal_chat = models.BooleanField(default=True)
+    text = models.TextField()
 
 
 class Notifications(models.Model):
