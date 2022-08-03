@@ -23,6 +23,7 @@ from rest_framework.authtoken.views import obtain_auth_token
 api_urlpatterns = [
     path("workspaces/", include("apps.workspace.api.urls")),
     path("users/", include("apps.users.api.urls")),
+    path("posts/", include("apps.posts.api.urls"))
 ]
 
 urlpatterns = [

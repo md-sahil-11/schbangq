@@ -4,7 +4,6 @@ from apps.users.models import User, UserReward
 
 
 class UserSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = User
         fields = (

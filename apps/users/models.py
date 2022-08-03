@@ -10,7 +10,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     firstname = models.CharField(max_length=100, null=True, blank=True)
     lastname = models.CharField(max_length=100, null=True, blank=True)
     username = models.CharField(
-        max_length=100, unique=True, db_index=True, blank=True, null=True
+        max_length=100, blank=True, null=True
     )
     date_joined = models.DateTimeField(default=timezone.now)
     picture = models.ImageField(upload_to="users/profile", null=True, blank=True)
