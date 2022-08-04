@@ -131,23 +131,19 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-if DEBUG:
-    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
-    # Static files (CSS, JavaScript, Images)
-    # https://docs.djangoproject.com/en/3.2/howto/static-files/
-    STATIC_ROOT = os.path.join(BASE_DIR, "static_root")
-    STATIC_URL = "/static/"
-    STATIC_DIR = os.path.join(BASE_DIR, "static")
-    STATICFILES_DIRS = [STATIC_DIR]
+DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
-    # Media files
-    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-    MEDIA_URL = "/media/"
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/3.2/howto/static-files/
+STATIC_ROOT = os.path.join(BASE_DIR, "static_root")
+STATIC_URL = "/static/"
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+STATICFILES_DIRS = [STATIC_DIR]
 
-else: 
-    # production env
-    pass
+# Media files
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
 
 AUTH_USER_MODEL = "users.User"
 
