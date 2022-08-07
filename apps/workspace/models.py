@@ -72,7 +72,9 @@ class Project(models.Model):
     description = models.TextField()
     service = models.ForeignKey(Service, related_name='projects', on_delete=models.CASCADE)
     assigned_at = models.DateTimeField(default=timezone.now)
-
+    deadline_at = models.DateTimeField(null=True, blank=True)
+    is_pending = models.BooleanField(default=True)
+    
     class Meta:
         ordering = ['-id']
 
@@ -137,7 +139,7 @@ class TaskComment(models.Model):
     text = models.TextField()
 
 
-class Notifications(models.Model):
+class Notification(models.Model):
     user = models.ForeignKey(User, related_name='notifications', on_delete=models.CASCADE)
     text = models.TextField()
     seen = models.BooleanField(default=False)

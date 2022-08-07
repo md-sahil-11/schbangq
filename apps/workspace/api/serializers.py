@@ -41,10 +41,35 @@ class TransactionSerializer(serializers.ModelSerializer):
 
 
 class ProjectSerializer(serializers.ModelSerializer):
+    user_id = serializers.PrimaryKeyRelatedField(
+        source="user",
+        queryset=User.objects.all(),
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = Project
-        fields = '__all__'
+        fields = (
+            "id", "user", "workspace", "title", "description", "service", "assigned_at", "deadline_at", "is_pending", "user_id"
+        )
+
+
+class TaskCommentSerializer(serializers.ModelSerializer):
+    user_id = serializers.PrimaryKeyRelatedField(
+        source="user",
+        queryset=User.objects.all(),
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
+    user = UserSerializer(read_only=True)
+    
+    class Meta:
+        model = TaskComment
+        fields = ("id", "user", "task", "internal_chat", "user_id", "text")
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -64,22 +89,27 @@ class TaskSerializer(serializers.ModelSerializer):
         allow_null=True,
     ) 
     assignee = UserSerializer(read_only=True)
+    comments = serializers.SerializerMethodField()
 
     class Meta:
         model = Task
-        fields = ("title", "assignor", "assignor_id", "assignee", "assignee_id", "assigned_at", "deadline_at", "priority", "progress", "reward", "is_pending", "project")
-
-
-class TaskCommentSerializer(serializers.ModelSerializer):
-    user_id = serializers.PrimaryKeyRelatedField(
-        source="user",
-        queryset=User.objects.all(),
-        write_only=True,
-        required=False,
-        allow_null=True,
-    )
-    user = UserSerializer(read_only=True)
+        fields = ("title", "assignor", "assignor_id", "assignee", "assignee_id", "assigned_at", "deadline_at", "priority", "progress", "reward", "is_pending", "project", "comments")
     
+    def get_comments(self, instance):
+        queryset = instance.comments.all()
+        return TaskCommentSerializer(queryset, many=True).data
+    
+
+class FeedbackSerializer(serializers.ModelSerializer):
+
     class Meta:
-        model = TaskComment
-        fields = ("id", "user", "task", "internal_chat", "user_id", "text")
+        model = Feedback
+        fields = '__all__'
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Notification
+        fields = '__all__'
+    

@@ -9,6 +9,8 @@ from rest_framework.authtoken.models import Token
 from apps.users.api.serializers import UserRewardSerializer, UserSerializer
 
 from apps.users.models import Follow, User
+from apps.workspace.api.serializers import FeedbackSerializer, NotificationSerializer, WorkspaceSerializer
+from apps.workspace.models import Feedback, Workspace, WorkspaceMember
 
 class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
@@ -32,7 +34,7 @@ class UserViewSet(viewsets.ModelViewSet):
         token, _ = Token.objects.get_or_create(user=user)
         result = {**data}
         result['token'] = token.key
-        return Response({"success": True, "data": data})
+        return Response({"success": True, "data": result})
    
     @action(
         detail=False,
@@ -83,15 +85,14 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(
         detail=False,
         methods=["GET"],
-        serializer_class=UserRewardSerializer,
+        serializer_class=FeedbackSerializer,
         permission_classes=(permissions.IsAuthenticated,),
     )
-    def rewards(self, request, *args, **kwargs):
-        queryset = request.user.rewards.all()
+    def feedbacks(self, request, *args, **kwargs):
+        queryset = request.user.feedbacks.all()
         serializer = self.serializer_class(queryset, many=True)
         return Response({"count": queryset.count(), "results": serializer.data})
-
-
+    
     @action(
         detail=True,
         methods=["GET"],
@@ -113,6 +114,27 @@ class UserViewSet(viewsets.ModelViewSet):
         Follow.objects.filter(
             followed=user, follower=request.user
         ).delete()
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        permission_classes=(permissions.IsAuthenticated,)
+    )
+    def workspaces(self, request, *args, **kwargs):
+        user = request.user
+        queryset = Workspace.objects.filter(
+            id__in=WorkspaceMember.objects.filter(user=user).values_list('workspace_id')
+        )
+        return Response({"count": queryset.count(), "results": WorkspaceSerializer(queryset, many=True).data})
+    
+    @action(
+        detail=False,
+        methods=["GET"],
+        permission_classes=(permissions.IsAuthenticated,)
+    )
+    def notifications(self, request, *args, **kwargs):
+        queryset = request.user.notifications.all()
+        return Response({"count": queryset.count(), "results": NotificationSerializer(queryset, many=True).data})
 
 
 
