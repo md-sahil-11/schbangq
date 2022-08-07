@@ -178,7 +178,7 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=['GET'],
-        permission_classes=(permissions.IsAuthenticated,)
+        permission_classes=(permissions.AllowAny,)
     )
     def projects(self, request, *args, **kwargs):
         workspace = self.get_object()
@@ -247,6 +247,28 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
             )
             return Response({"success": True})
         return Response({"success": False})
+    
+    @action(
+        detail=True,
+        methods=['PUT'],
+        serializer_class=ProjectSerializer
+    )
+    def complete_project(self, request, *args, **kwargs):
+        project = get_object_or_404(Project, pk=int(self.kwargs.get('pk')))
+        project.is_pending = False
+        project.save()
+        return Response({"success": True})
+
+    @action(
+        detail=True,
+        methods=['PUT'],
+        serializer_class=FeedbackSerializer
+    )
+    def give_feedback(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+        return Response({"result": serializer.data})
 
     @action(
         detail=True,
@@ -307,3 +329,9 @@ class TaskCommentViewSet(viewsets.ModelViewSet):
     queryset = TaskComment.objects.all()
     serializer_class = TaskCommentSerializer
     permission_classes = (permissions.IsAuthenticated,)
+
+
+# class TaskCommentViewSet(viewsets.ModelViewSet):
+    # queryset = TaskComment.objects.all()
+    # serializer_class = TaskCommentSerializer
+    # permission_classes = (permissions.IsAuthenticated,)
